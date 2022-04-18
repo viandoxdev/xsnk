@@ -6,6 +6,8 @@
 .globl secs
 .globl nsecs
 .globl get_time
+.globl merge_timestamp
+.globl split_timestamp
 .globl sleep
 .globl sleep_until
 .set CLOCK_MONOTONIC, 1
@@ -25,7 +27,28 @@ get_time:
 	movq %rdx, (%rax)
 	movq 8(%rsi), %rdx
 	movq %rdx, (%rdi)
+
+	movq (%rsi), %rax
+	movq 8(%rsi), %rdx
 	
+	ret
+# converts %rax:%rdx (s:ns) timestamp into
+# %rax (ns) timestamp
+merge_timestamp:
+	pushq %rdx
+	movq $1000000000, %rdx
+	mulq %rdx
+	popq %rdx
+	addq %rdx, %rax
+
+	ret
+# converts %rax (ns) timestamp into
+# %rax:%rdx (s:ns) timestamp
+split_timestamp:
+	xorq %rdx, %rdx
+	movq $1000000000, %rdi
+	divq %rdi
+
 	ret
 # sleeps %rax seconds and %rdx nanoseconds
 sleep:
